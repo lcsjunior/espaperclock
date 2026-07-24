@@ -35,8 +35,6 @@ void Config::load() {
     return;
 
   convertFromJson(doc);
-
-  log_i("Config loaded");
 }
 
 void Config::save() {
