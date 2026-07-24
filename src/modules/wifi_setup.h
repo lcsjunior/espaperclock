@@ -6,5 +6,6 @@
 extern WiFiManager wifiManager;
 
 void initWifi();
+void handleWifi();
 
 #endif  // WIFI_SETUP_H

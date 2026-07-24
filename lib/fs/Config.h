@@ -6,9 +6,9 @@
 
 class Config {
  public:
-  bool mount();
-  bool load();
-  bool save();
+  void mount();
+  void load();
+  void save();
 
   const char* otaPass() const;
   const char* owmApiKey() const;
@@ -23,13 +23,15 @@ class Config {
   void setNtpServer(const char* value);
 
  private:
-  char otaPass_[16];
-  char owmApiKey_[48];
-  char owmLocation_[32];
-  char timezone_[16];
-  char ntpServer_[32];
+  char otaPass_[16] = {0};
+  char owmApiKey_[48] = {0};
+  char owmLocation_[32] = {0};
+  char timezone_[16] = {0};
+  char ntpServer_[32] = {0};
 
   void applyDefaults();
+  bool readFile(JsonDocument& doc);
+  bool writeFile(const JsonDocument& doc);
   void convertFromJson(const JsonDocument& doc);
   void convertToJson(JsonDocument& doc) const;
 };
