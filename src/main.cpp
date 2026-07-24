@@ -1,9 +1,8 @@
 #include <Arduino.h>
-#include <config.h>
-#include <open_weather_map.h>
+#include <Config.h>
+#include <OpenWeatherMap.h>
 
 #include "modules/http_server.h"
-#include "modules/ota_setup.h"
 #include "modules/wifi_setup.h"
 
 #define SERIAL_BAUD_RATE 115200
@@ -15,13 +14,11 @@ void setup() {
   AppConfig.load();
 
   initWifi();
-  initOta();
+  Weather.begin(AppConfig.owmApiKey(), AppConfig.owmLocation());
   initHttpServer();
-  OWM.begin(AppConfig.owmApiKey(), AppConfig.owmLocation());
 }
 
 void loop() {
-  wifiManager.process();
-  ArduinoOTA.handle();
-  OWM.refresh();
+  handleWifi();
+  Weather.refresh();
 }

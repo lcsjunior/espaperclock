@@ -2,7 +2,8 @@
 #define OPEN_WEATHER_MAP_H
 
 #include <Arduino.h>
-#include <ESP8266HTTPClient.h>
+#include <ArduinoJson.h>
+#include <HTTPClient.h>
 #include <WiFiClient.h>
 
 class OpenWeatherMap {
@@ -22,13 +23,16 @@ class OpenWeatherMap {
   char description_[48] = {0};
   unsigned long lastRefreshMs_ = 0;
 
-  bool hasConfig();
-  const char* formatUrl();
-  void processResponse();
+  bool hasConfig() const;
+  const char* formatUrl() const;
+  void request();
+  bool isStatusOk(int statusCode) const;
+  bool parseJson(JsonDocument& doc);
+  void processResponse(int statusCode);
   void setTemperature(float temp);
   void setDescription(const char* desc);
 };
 
-extern OpenWeatherMap OWM;
+extern OpenWeatherMap Weather;
 
 #endif  // OPEN_WEATHER_MAP_H

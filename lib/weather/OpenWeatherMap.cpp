@@ -1,7 +1,7 @@
-#include "open_weather_map.h"
+#include "OpenWeatherMap.h"
 
 #include <ArduinoJson.h>
-#include <utilities.h>
+#include <device.h>
 
 #ifndef OWM_HTTP_TIMEOUT_MS
 #define OWM_HTTP_TIMEOUT_MS 8000UL
@@ -11,11 +11,11 @@
 #define OWM_REFRESH_INTERVAL_MS 600000UL
 #endif
 
-static const char OWM_URL[] PROGMEM =
+constexpr const char* OWM_URL =
     "http://api.openweathermap.org/data/2.5/"
     "weather?units=metric&q=%s&appid=%s";
 
-OpenWeatherMap OWM;
+OpenWeatherMap Weather;
 
 void OpenWeatherMap::begin(const char* apiKey, const char* location) {
   apiKey_ = apiKey;
@@ -24,14 +24,10 @@ void OpenWeatherMap::begin(const char* apiKey, const char* location) {
 }
 
 void OpenWeatherMap::refresh() {
-  if (!hasConfig())
-    return;
   if (millis() - lastRefreshMs_ < OWM_REFRESH_INTERVAL_MS)
     return;
-  http_.begin(wifiClient_, formatUrl());
-  http_.setTimeout(OWM_HTTP_TIMEOUT_MS);
-  processResponse();
-  http_.end();
+
+  request();
   lastRefreshMs_ = millis();
 }
 
@@ -43,44 +39,69 @@ const char* OpenWeatherMap::description() const {
   return description_;
 }
 
-bool OpenWeatherMap::hasConfig() {
+bool OpenWeatherMap::hasConfig() const {
   if (!apiKey_ || !apiKey_[0]) {
-    Serial.println(F("OWM apiKey not configured"));
+    log_w("OWM apiKey not configured");
     return false;
   }
+
   if (!location_ || !location_[0]) {
-    Serial.println(F("OWM location not configured"));
+    log_w("OWM location not configured");
     return false;
   }
   return true;
 }
 
-const char* OpenWeatherMap::formatUrl() {
+const char* OpenWeatherMap::formatUrl() const {
   static char url[196];
-  static char encodedLocation[100];
+  char encodedLocation[100];
+
   urlEncode(encodedLocation, sizeof(encodedLocation), location_);
-  snprintf_P(url, sizeof(url), OWM_URL, encodedLocation, apiKey_);
+  snprintf(url, sizeof(url), OWM_URL, encodedLocation, apiKey_);
+
   return url;
 }
 
-void OpenWeatherMap::processResponse() {
-  int statusCode = http_.GET();
-  if (statusCode != HTTP_CODE_OK) {
-    Serial.printf_P(PSTR("OWM GET failed, code=%d\n"), statusCode);
+void OpenWeatherMap::request() {
+  if (!hasConfig())
     return;
+
+  http_.begin(wifiClient_, formatUrl());
+  http_.setTimeout(OWM_HTTP_TIMEOUT_MS);
+  const int statusCode = http_.GET();
+  processResponse(statusCode);
+  http_.end();
+}
+
+bool OpenWeatherMap::isStatusOk(int statusCode) const {
+  if (statusCode != HTTP_CODE_OK) {
+    log_e("OWM GET failed, code=%d", statusCode);
+    return false;
   }
+  return true;
+}
+
+bool OpenWeatherMap::parseJson(JsonDocument& doc) {
+  DeserializationError err = deserializeJson(doc, http_.getStream());
+  if (err) {
+    log_e("OWM parse error: %s", err.c_str());
+    return false;
+  }
+  return true;
+}
+
+void OpenWeatherMap::processResponse(int statusCode) {
+  if (!isStatusOk(statusCode))
+    return;
 
   JsonDocument doc;
-  DeserializationError error = deserializeJson(doc, http_.getStream());
-  if (error) {
-    Serial.printf_P(PSTR("OWM parse error: %s\n"), error.c_str());
+  if (!parseJson(doc))
     return;
-  }
 
   setTemperature(doc["main"]["temp"].as<float>());
-  setDescription(doc["weather"][0]["description"]);
+  setDescription(doc["weather"][0]["description"] | "");
 
-  Serial.printf_P(PSTR("OWM %.2f°C %s\n"), temperature_, description_);
+  log_i("OWM %.2f°C %s", temperature_, description_);
 }
 
 void OpenWeatherMap::setTemperature(float value) {

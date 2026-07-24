@@ -1,19 +1,19 @@
 #include "http_server.h"
+
+#include <clock.h>
+#include <OpenWeatherMap.h>
+
 #include "wifi_setup.h"
 
-#include <open_weather_map.h>
-#include <utilities.h>
-
-static const char APPLICATION_JSON[] PROGMEM = "application/json";
+constexpr const char* APPLICATION_JSON = "application/json";
 
 void initHttpServer() {
   wifiManager.server->on("/health", HTTP_GET, []() {
-    char buf[192];
-    snprintf_P(
-        buf, sizeof(buf),
-        PSTR("{\"status\":\"UP\",\"datetime\":\"%s\",\"temperature\":%.2f,"
-             "\"weather\":\"%s\"}"),
-        formatDateTime(), OWM.temperature(), OWM.description());
-    wifiManager.server->send(200, FPSTR(APPLICATION_JSON), buf);
+    char payload[192];
+    snprintf(payload, sizeof(payload),
+             "{\"status\":\"UP\",\"dateTime\":\"%s\",\"temperature\":%.2f,"
+             "\"weather\":\"%s\"}",
+             formatDateTime(), Weather.temperature(), Weather.description());
+    wifiManager.server->send(200, APPLICATION_JSON, payload);
   });
 }

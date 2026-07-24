@@ -1,72 +1,48 @@
+#include "Config.h"
+
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <LittleFS.h>
-#include <config.h>
-#include <utilities.h>
 
 constexpr const char* CONFIG_PATH = "/config.json";
 
-static const char DEFAULT_OWM_LOCATION[] PROGMEM = "Juiz de Fora,BR";
-static const char DEFAULT_TIMEZONE[] PROGMEM = "BRT3";
-static const char DEFAULT_NTP_SERVER[] PROGMEM = "br.pool.ntp.org";
+constexpr const char* DEFAULT_OWM_LOCATION = "Juiz de Fora,BR";
+constexpr const char* DEFAULT_TIMEZONE = "BRT3";
+constexpr const char* DEFAULT_NTP_SERVER = "br.pool.ntp.org";
 
 Config AppConfig;
 
-bool Config::mount() {
+void Config::mount() {
   if (LittleFS.begin()) {
-    return true;
+    log_i("LittleFS mounted");
+    return;
   }
-  Serial.println(F("Failed to mount LittleFS, formatting"));
-  if (LittleFS.format() && LittleFS.begin()) {
-    return true;
+
+  log_w("Failed to mount LittleFS, formatting");
+
+  if (!LittleFS.format() || !LittleFS.begin()) {
+    log_e("Failed to format LittleFS");
+    return;
   }
-  Serial.println(F("Failed to format LittleFS"));
-  return false;
+  log_i("LittleFS formatted and mounted");
 }
 
-bool Config::load() {
+void Config::load() {
   applyDefaults();
 
-  File file = LittleFS.open(CONFIG_PATH, "r");
-  if (!file) {
-    Serial.printf_P(PSTR("Failed to open %s\n"), CONFIG_PATH);
-    return false;
-  }
-
   JsonDocument doc;
-  DeserializationError err = deserializeJson(doc, file);
-  size_t bytesRead = file.size();
-  file.close();
+  if (!readFile(doc))
+    return;
 
-  if (err) {
-    Serial.printf_P(PSTR("Parse error: %s\n"), err.c_str());
-    return false;
-  }
-
-  Serial.printf_P(PSTR("Loaded %u bytes from %s\n"), bytesRead, CONFIG_PATH);
   convertFromJson(doc);
-  return true;
+
+  log_i("Config loaded");
 }
 
-bool Config::save() {
+void Config::save() {
   JsonDocument doc;
   convertToJson(doc);
-
-  File file = LittleFS.open(CONFIG_PATH, "w");
-  if (!file) {
-    Serial.printf_P(PSTR("Failed to open %s for writing\n"), CONFIG_PATH);
-    return false;
-  }
-
-  size_t bytesWritten = serializeJson(doc, file);
-  file.close();
-  if (bytesWritten == 0) {
-    Serial.printf_P(PSTR("Failed to write to %s\n"), CONFIG_PATH);
-    return false;
-  }
-
-  Serial.printf_P(PSTR("Saved %u bytes to %s\n"), bytesWritten, CONFIG_PATH);
-  return true;
+  writeFile(doc);
 }
 
 const char* Config::otaPass() const {
@@ -110,11 +86,50 @@ void Config::setNtpServer(const char* value) {
 }
 
 void Config::applyDefaults() {
-  setOtaPass(OTA_PASSWORD);
-  owmApiKey_[0] = '\0';
-  copyFromFlash(owmLocation_, sizeof(owmLocation_), DEFAULT_OWM_LOCATION);
-  copyFromFlash(timezone_, sizeof(timezone_), DEFAULT_TIMEZONE);
-  copyFromFlash(ntpServer_, sizeof(ntpServer_), DEFAULT_NTP_SERVER);
+  setOtaPass(OTA_PASS);
+  setOwmApiKey("");
+  setOwmLocation(DEFAULT_OWM_LOCATION);
+  setTimezone(DEFAULT_TIMEZONE);
+  setNtpServer(DEFAULT_NTP_SERVER);
+}
+
+bool Config::readFile(JsonDocument& doc) {
+  File file = LittleFS.open(CONFIG_PATH, "r");
+  if (!file) {
+    log_w("No %s yet, keeping defaults", CONFIG_PATH);
+    return false;
+  }
+
+  DeserializationError err = deserializeJson(doc, file);
+  const size_t bytesRead = file.size();
+  file.close();
+
+  if (err) {
+    log_e("Parse error: %s", err.c_str());
+    return false;
+  }
+
+  log_i("Loaded %u bytes from %s", bytesRead, CONFIG_PATH);
+  return true;
+}
+
+bool Config::writeFile(const JsonDocument& doc) {
+  File file = LittleFS.open(CONFIG_PATH, "w");
+  if (!file) {
+    log_e("Failed to open %s for writing", CONFIG_PATH);
+    return false;
+  }
+
+  const size_t bytesWritten = serializeJson(doc, file);
+  file.close();
+
+  if (bytesWritten == 0) {
+    log_e("Failed to write to %s", CONFIG_PATH);
+    return false;
+  }
+
+  log_i("Saved %u bytes to %s", bytesWritten, CONFIG_PATH);
+  return true;
 }
 
 void Config::convertFromJson(const JsonDocument& doc) {
