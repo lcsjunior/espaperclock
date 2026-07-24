@@ -76,12 +76,15 @@ Arduino convention, which overrides any naming recommended in skills:
 - Buffers are named for what they hold (`url`, `payload`, `dateTime`), never
   `buf` nor a `Buf` suffix.
 - Interfaces take the plain name (`TemperatureSensor`, no `I` prefix); when it
-  collides with a concrete class, that class gets the `Impl` suffix.
+  collides with a concrete class, that class gets the `Class` suffix, like the
+  Arduino core (`extern WiFiClass WiFi;`).
 - Global singletons are `PascalCase` like the Arduino core libs (`Serial`,
   `Wire`): `extern DisplayManager Display;` in the header, defined at the top of
   the `.cpp`, right after the includes.
 - A file that holds a class takes that class's name verbatim (`Config.h`,
-  `OpenWeatherMap.cpp`).
+  `OpenWeatherMap.cpp`); when the class carries the `Class` suffix, the file
+  takes the singleton's name instead (`LedClass` lives in `Led.h`), again like
+  the Arduino core (`WiFiClass` in `WiFi.h`).
 
 ## Style
 
