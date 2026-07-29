@@ -40,10 +40,6 @@ on an ESP32, wired to the VSPI bus.
 | GND  | GND | |
 | 3.3V | 3V3 | |
 
-The onboard LED (GPIO22, active LOW) flashes twice at boot, so a reset is
-visible without the serial monitor. It is dimmed over LEDC PWM rather than
-driven full on.
-
 - [Lolin32 Lite pinout](assets/images/Lolin32_pinout03.png)
 - [Waveshare 1.54" e-Paper — ESP32 wiring](https://www.waveshare.com/wiki/1.54inch_e-Paper_Module_Manual#ESP32.2F8266)
 
