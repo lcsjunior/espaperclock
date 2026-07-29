@@ -8,6 +8,13 @@ ESP32 firmware for a 1.54" e-paper clock — see `README.md`. The panel hasn't
 arrived: WiFi provisioning, settings, OTA, NTP time sync and OpenWeatherMap
 fetch exist; display code does not.
 
+**Migration in progress**: the project is moving from PlatformIO to the
+Arduino IDE. The pre-migration source (matching the layout below) currently
+sits under `old/` for reference; `EPaperClock.ino` is the new sketch, not yet
+populated. Until the migration lands, treat the paths below as describing
+`old/<path>`, and validate the "Build, Upload" section against whichever
+toolchain is actually in use before relying on it.
+
 ## Architecture (where things live)
 
 - `src/main.cpp` — boot sequence and `loop()`.

@@ -1,4 +1,4 @@
-# espaperclock
+# EPaperClock
 
 ESP32 firmware (PlatformIO/Arduino) for a 1.54" e-paper clock. Shows a 24h
 digital clock (NTP, configured timezone) and the current weather — condition
