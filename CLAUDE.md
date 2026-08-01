@@ -7,19 +7,29 @@ Guidance for Claude Code (claude.ai/code) when working in this repository.
 ESP32-C3 firmware for a 1.54" e-paper clock — see `README.md`. The panel
 hasn't arrived, so there's no display code yet.
 
-Implemented: WiFi connect, NTP time sync. Planned: display, deep sleep,
-OpenWeatherMap fetch (see `README.md`'s TODO).
+Implemented: WiFi connect, NTP time sync, OpenWeatherMap fetch, deep sleep
+with periodic resync. Planned: display (see `README.md`'s TODO).
 
 Toolchain: Arduino IDE plus `arduino-cli` for reproducible/scripted builds.
 
 ## Architecture
 
-- `EPaperClock.ino` — boot sequence, `setup()`/`loop()`.
+- `EPaperClock.ino` — boot sequence, `setup()`/`loop()`. Deep sleeps 1 min at
+  a time (future display redraw cadence); WiFi/NTP/weather resync only runs
+  every 60th wake (~1h), gated by an `RTC_DATA_ATTR` wake counter.
+  `Config.mount()`/`load()` run every wake regardless (cheap, no network),
+  so `TZ` can be reapplied (`setenv`/`tzset`) from it on every wake — deep
+  sleep clears the libc environment, so skipping this on non-sync wakes
+  would make `localtime()` read UTC until the next resync.
 - `Config.h`/`Config.cpp` — `ConfigClass` (singleton `Config`): read-only
   LittleFS + ArduinoJson load of `/config.json` — WiFi SSID/password,
   timezone, NTP server.
 - `CoreUtils.h`/`CoreUtils.cpp` — `waitWifi()`/`waitNtp()` wait helpers,
   `formatDateTime()`/`isTimeSet()`/`urlEncode()`.
+- `Weather.h`/`Weather.cpp` — `WeatherClass` (singleton `Weather`): HTTPS
+  OpenWeatherMap fetch, TLS-pinned via `data/owm-ca.pem`. Temperature and
+  description are cached in RTC memory (`RTC_DATA_ATTR`), so the last known
+  reading survives deep sleep and a failed fetch just leaves it in place.
 - `data/config.json` — the actual secrets, git-ignored, flashed to the
   device separately from the sketch (see Build, Upload). Never written by
   the firmware. `data/config.json.example` is the tracked template.
