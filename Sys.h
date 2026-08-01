@@ -1,9 +1,9 @@
-#ifndef DEVICE_H
-#define DEVICE_H
+#ifndef SYS_H
+#define SYS_H
 
 #include <Arduino.h>
 
-class DeviceClass {
+class SysClass {
  public:
   void waitWifi() const;
   void beginNtp(const char* timezone, const char* ntpServer) const;
@@ -11,11 +11,12 @@ class DeviceClass {
   void setTimezone(const char* timezone) const;
   const char* formatDateTime() const;
   bool isTimeSet() const;
-  void urlEncode(char* dest, size_t destSize, const char* src) const;
-  bool shouldSync() const;
+  void everyCycle(void (*action)()) const;
   void deepSleep(uint32_t intervalS, uint32_t syncIntervalWakes) const;
 };
 
-extern DeviceClass Device;
+extern SysClass Sys;
 
-#endif  // DEVICE_H
+void urlEncode(char* dest, size_t destSize, const char* src);
+
+#endif  // SYS_H

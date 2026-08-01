@@ -26,7 +26,7 @@ void ConfigClass::load() {
   }
 
   JsonDocument doc;
-  DeserializationError err = deserializeJson(doc, file);
+  const DeserializationError err = deserializeJson(doc, file);
   file.close();
 
   if (err) {

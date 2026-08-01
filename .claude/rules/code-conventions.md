@@ -29,7 +29,7 @@ char*`, copied with `strlcpy`.
   trailing `\n`.
 - `Tools > Core Debug Level` in the Arduino IDE (`Info` or above) is what
   makes `log_i` emit; for `arduino-cli` it's the FQBN's `DebugLevel` option.
-- `Serial.print*` only in the wait helpers (`Device.cpp`), for progress dots.
+- `Serial.print*` only in the wait helpers (`Sys.cpp`), for progress dots.
 
 ## Constants
 
@@ -78,7 +78,7 @@ Arduino convention overrides skill defaults:
 - A file takes its class's name (`Config.h`); if the class has the `Class`
   suffix, the file takes the singleton's name instead (`Led.h` for
   `LedClass`).
-- Every sketch file is `PascalCase`, class or not (`Device.h`), like
+- Every sketch file is `PascalCase`, class or not (`Sys.h`), like
   `Arduino.h` itself.
 
 ## Style

@@ -1,4 +1,4 @@
-#include "Device.h"
+#include "Sys.h"
 
 #include <WiFi.h>
 #include <cctype>
@@ -11,11 +11,11 @@
 constexpr int MIN_VALID_YEAR = 2024;
 constexpr const char* NTP_FALLBACK_SERVER = "pool.ntp.org";
 
-DeviceClass Device;
+SysClass Sys;
 
 RTC_DATA_ATTR static uint32_t wakeCount = 0;
 
-void DeviceClass::waitWifi() const {
+void SysClass::waitWifi() const {
   Serial.print("Waiting for WiFi connection...");
 
   const uint32_t startMs = millis();
@@ -27,11 +27,11 @@ void DeviceClass::waitWifi() const {
   Serial.println(WiFi.isConnected() ? "connected" : "disconnected");
 }
 
-void DeviceClass::beginNtp(const char* timezone, const char* ntpServer) const {
+void SysClass::beginNtp(const char* timezone, const char* ntpServer) const {
   configTzTime(timezone, ntpServer, NTP_FALLBACK_SERVER);
 }
 
-void DeviceClass::waitNtp() const {
+void SysClass::waitNtp() const {
   Serial.print("Waiting for NTP sync...");
 
   const uint32_t startMs = millis();
@@ -43,27 +43,39 @@ void DeviceClass::waitNtp() const {
                 formatDateTime());
 }
 
-void DeviceClass::setTimezone(const char* timezone) const {
+void SysClass::setTimezone(const char* timezone) const {
   setenv("TZ", timezone, 1);
   tzset();
 }
 
-const char* DeviceClass::formatDateTime() const {
+const char* SysClass::formatDateTime() const {
   static char dateTime[20];
-  time_t now = time(nullptr);
+  const time_t now = time(nullptr);
   strftime(dateTime, sizeof(dateTime), "%Y-%m-%d %H:%M:%S", localtime(&now));
   return dateTime;
 }
 
-bool DeviceClass::isTimeSet() const {
+bool SysClass::isTimeSet() const {
   const time_t now = time(nullptr);
   struct tm timeInfo;
   gmtime_r(&now, &timeInfo);
   return (timeInfo.tm_year + 1900) >= MIN_VALID_YEAR;
 }
 
-void DeviceClass::urlEncode(char* dest, size_t destSize,
-                            const char* src) const {
+void SysClass::everyCycle(void (*action)()) const {
+  if (wakeCount != 0)
+    return;
+  action();
+}
+
+void SysClass::deepSleep(uint32_t intervalS, uint32_t syncIntervalWakes) const {
+  wakeCount = (wakeCount + 1) % syncIntervalWakes;
+  log_i("Wake %lu/%lu, entering deep sleep for %lu s", wakeCount,
+        syncIntervalWakes, intervalS);
+  ESP.deepSleep(intervalS * 1000000ULL);
+}
+
+void urlEncode(char* dest, size_t destSize, const char* src) {
   constexpr char hexDigits[] = "0123456789ABCDEF";
   size_t j = 0;
 
@@ -81,16 +93,4 @@ void DeviceClass::urlEncode(char* dest, size_t destSize,
     dest[j++] = hexDigits[c & 0x0F];
   }
   dest[j] = '\0';
-}
-
-bool DeviceClass::shouldSync() const {
-  return wakeCount == 0;
-}
-
-void DeviceClass::deepSleep(uint32_t intervalS,
-                            uint32_t syncIntervalWakes) const {
-  wakeCount = (wakeCount + 1) % syncIntervalWakes;
-  log_i("Wake %lu/%lu, entering deep sleep for %lu s", wakeCount,
-        syncIntervalWakes, intervalS);
-  ESP.deepSleep(intervalS * 1000000ULL);
 }
