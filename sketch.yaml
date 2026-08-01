@@ -4,7 +4,10 @@ profiles:
     platforms:
       - platform: esp32:esp32 (3.3.11)
     libraries:
+      - Adafruit BusIO (1.17.4)
+      - Adafruit GFX Library (1.12.6)
       - ArduinoJson (7.4.3)
+      - GxEPD2 (1.6.9)
     port_config:
       baudrate: 115200
 
