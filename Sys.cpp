@@ -62,10 +62,10 @@ bool SysClass::isTimeSet() const {
   return (timeInfo.tm_year + 1900) >= MIN_VALID_YEAR;
 }
 
-void SysClass::onSyncDue(void (*task)()) const {
+void SysClass::everyCycle(void (*action)()) const {
   if (wakeCount != 0)
     return;
-  task();
+  action();
 }
 
 void SysClass::deepSleep(uint32_t intervalS, uint32_t syncIntervalWakes) const {

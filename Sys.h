@@ -11,7 +11,7 @@ class SysClass {
   void setTimezone(const char* timezone) const;
   const char* formatDateTime() const;
   bool isTimeSet() const;
-  void onSyncDue(void (*task)()) const;
+  void everyCycle(void (*action)()) const;
   void deepSleep(uint32_t intervalS, uint32_t syncIntervalWakes) const;
 };
 

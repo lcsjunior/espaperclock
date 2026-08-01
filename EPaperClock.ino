@@ -27,7 +27,7 @@ void setup() {
   Config.mount();
   Config.load();
 
-  Sys.onSyncDue(resync);
+  Sys.everyCycle(resync);
 
   Sys.setTimezone(Config.timezone());
 
