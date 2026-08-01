@@ -1,6 +1,6 @@
 profiles:
   lolin_c3_pico:
-    fqbn: esp32:esp32:lolin_c3_pico:DebugLevel=info
+    fqbn: esp32:esp32:lolin_c3_pico:DebugLevel=info,PartitionScheme=huge_app
     platforms:
       - platform: esp32:esp32 (3.3.11)
     libraries:

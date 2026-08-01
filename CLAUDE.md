@@ -40,7 +40,11 @@ User-configurable values belong in `Config`, sourced from `data/config.json`
 ## Build, Upload
 
 Board: **LOLIN C3 Pico** (`esp32:esp32:lolin_c3_pico`), pinned in
-`sketch.yaml`.
+`sketch.yaml`. Partition Scheme is **Huge APP (3MB No OTA/1MB SPIFFS)** —
+no OTA, all uploads are over serial. `Tools > Partition Scheme` in the IDE
+GUI must match (`sketch.yaml` doesn't apply there, same caveat as `DebugLevel`
+in `code-conventions.md`); a mismatch flashes LittleFS data at the wrong
+offset and corrupts the app partition.
 
 ```bash
 arduino-cli compile --upload --profile lolin_c3_pico -p /dev/ttyACM0 .
