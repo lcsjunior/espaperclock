@@ -67,4 +67,4 @@ definition of done.
 6. [ ] Retry the OpenWeather request on failure.
 7. [ ] Cache the weather result (RTC memory) across deep sleep.
 8. [ ] Move the OpenWeather URL into config.
-9. [ ] Use HTTPS for the OpenWeather request.
+9. [x] Use HTTPS for the OpenWeather request.

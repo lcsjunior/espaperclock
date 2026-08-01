@@ -25,6 +25,9 @@ pending.
 - `data/config.json` — the actual secrets, git-ignored, flashed to the
   device separately from the sketch (see Build, Upload). Never written by
   the firmware. `data/config.json.example` is the tracked template.
+- `data/owm-ca.pem` — root CA pinned for the OpenWeatherMap HTTPS request
+  (`Weather.cpp`), git-ignored, flashed the same way as `config.json`.
+  `data/owm-ca.pem.example` documents how to fetch it.
 - `sketch.yaml` — pins the `esp32:esp32` core version and library versions
   for `arduino-cli`; not read by the Arduino IDE GUI.
 

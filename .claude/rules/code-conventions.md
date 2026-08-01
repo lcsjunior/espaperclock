@@ -5,12 +5,16 @@ any rule here.
 
 ## Memory
 
-- No `malloc()`/`new` at runtime — allocate only in global constructors.
+- No `malloc()`/`new` at runtime, except a single allocation at setup sized
+  exactly to data whose length is only known then (e.g. read from storage);
+  kept and never freed for the program's life, same reasoning as the `static`
+  exception below. Never in `loop()` or on a repeating path.
 - No Arduino `String` — use `char[]` + `snprintf`.
 - Fixed-size buffers, sized from the protocol/payload.
-- `static` a buffer only if it's returned by pointer or it's a `const` lookup
-  table; otherwise keep it local. The 8 KB loop stack has room, and `static`
-  costs RAM forever and breaks reentrancy.
+- `static` a buffer only if it's returned by pointer, it's a `const` lookup
+  table, or it caches data loaded once (e.g. from storage) and reused for the
+  rest of the program's life; otherwise keep it local. The 8 KB loop stack has
+  room, and `static` costs RAM forever and breaks reentrancy.
 - Diagnose with `ESP.getFreeHeap()` / `ESP.getMinFreeHeap()`.
 
 ## Flash strings

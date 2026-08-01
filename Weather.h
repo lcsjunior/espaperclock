@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
-#include <WiFiClient.h>
+#include <WiFiClientSecure.h>
 
 class WeatherClass {
  public:
@@ -15,13 +15,14 @@ class WeatherClass {
   const char* description() const;
 
  private:
-  WiFiClient wifiClient_;
+  WiFiClientSecure wifiClient_;
   HTTPClient http_;
   const char* apiKey_ = nullptr;
   const char* location_ = nullptr;
   float temperature_ = 0.0f;
   char description_[48] = {0};
 
+  void loadCaCert();
   bool hasConfig() const;
   const char* formatUrl() const;
   bool isStatusOk(int statusCode) const;

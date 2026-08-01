@@ -1,20 +1,46 @@
 #include "Weather.h"
 
 #include <ArduinoJson.h>
+#include <LittleFS.h>
+#include <new>
 
 #include "CoreUtils.h"
 
 #define OWM_HTTP_TIMEOUT_MS 8000UL
 
 constexpr const char* OWM_URL =
-    "http://api.openweathermap.org/data/2.5/"
+    "https://api.openweathermap.org/data/2.5/"
     "weather?units=metric&q=%s&appid=%s";
+constexpr const char* OWM_CA_CERT_PATH = "/owm-ca.pem";
 
 WeatherClass Weather;
+
+static char* caCert = nullptr;
 
 void WeatherClass::begin(const char* apiKey, const char* location) {
   apiKey_ = apiKey;
   location_ = location;
+  loadCaCert();
+}
+
+void WeatherClass::loadCaCert() {
+  File file = LittleFS.open(OWM_CA_CERT_PATH, "r");
+  if (!file) {
+    log_e("Missing %s", OWM_CA_CERT_PATH);
+    return;
+  }
+
+  const size_t size = file.size();
+  caCert = new (std::nothrow) char[size + 1];
+  if (!caCert) {
+    log_e("Out of memory loading %s (%u bytes)", OWM_CA_CERT_PATH, size);
+    file.close();
+    return;
+  }
+
+  const size_t length = file.readBytes(caCert, size);
+  file.close();
+  caCert[length] = '\0';
 }
 
 float WeatherClass::temperature() const {
@@ -35,6 +61,11 @@ bool WeatherClass::hasConfig() const {
     log_w("OWM location not configured");
     return false;
   }
+
+  if (!caCert) {
+    log_e("OWM CA cert not loaded");
+    return false;
+  }
   return true;
 }
 
@@ -52,6 +83,7 @@ void WeatherClass::request() {
   if (!hasConfig())
     return;
 
+  wifiClient_.setCACert(caCert);
   http_.begin(wifiClient_, formatUrl());
   http_.setTimeout(OWM_HTTP_TIMEOUT_MS);
   const int statusCode = http_.GET();
