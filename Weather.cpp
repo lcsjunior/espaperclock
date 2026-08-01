@@ -4,7 +4,7 @@
 #include <LittleFS.h>
 #include <new>
 
-#include "EspUtils.h"
+#include "Device.h"
 
 #define OWM_HTTP_TIMEOUT_MS 8000UL
 
@@ -80,7 +80,7 @@ const char* WeatherClass::formatUrl() const {
   static char url[196];
   char encodedLocation[100];
 
-  urlEncode(encodedLocation, sizeof(encodedLocation), location_);
+  Device.urlEncode(encodedLocation, sizeof(encodedLocation), location_);
   snprintf(url, sizeof(url), OWM_URL, encodedLocation, apiKey_);
 
   return url;
