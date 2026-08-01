@@ -11,9 +11,6 @@
 #define SYNC_INTERVAL_WAKES 60UL
 
 static void resync() {
-  if (!Sys.syncDue())
-    return;
-
   WiFi.begin(Config.wifiSsid(), Config.wifiPassword());
   Sys.waitWifi();
 
@@ -30,7 +27,7 @@ void setup() {
   Config.mount();
   Config.load();
 
-  resync();
+  Sys.onSyncDue(resync);
 
   Sys.setTimezone(Config.timezone());
 

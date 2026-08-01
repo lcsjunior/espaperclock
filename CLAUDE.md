@@ -16,8 +16,9 @@ Toolchain: Arduino IDE plus `arduino-cli` for reproducible/scripted builds.
 
 - `EPaperClock.ino` — boot sequence, `setup()`/`loop()`. Deep sleeps 1 min at
   a time (future display redraw cadence) via `Sys.deepSleep()`; WiFi/NTP/
-  weather resync only runs every 60th wake (~1h), gated by
-  `Sys.syncDue()`. `Config.mount()`/`load()` run every wake regardless
+  weather resync only runs every 60th wake (~1h) — the sketch hands `resync`
+  to `Sys.onSyncDue()`, which owns that decision.
+  `Config.mount()`/`load()` run every wake regardless
   (cheap, no network), so `TZ` can be reapplied (`setenv`/`tzset`) from it on
   every wake — deep sleep clears the libc environment, so skipping this on
   non-sync wakes would make `localtime()` read UTC until the next resync.
@@ -26,8 +27,11 @@ Toolchain: Arduino IDE plus `arduino-cli` for reproducible/scripted builds.
   timezone, NTP server.
 - `Sys.h`/`Sys.cpp` — `SysClass` (singleton `Sys`): `waitWifi()`/`beginNtp()`/
   `waitNtp()` wait/sync helpers, `formatDateTime()`/`isTimeSet()`, and the deep
-  sleep/wake-counter cycle (`syncDue()`, `deepSleep()`) — the wake counter is
-  `RTC_DATA_ATTR`, so it survives deep sleep. Never takes a `Config`
+  sleep/wake-counter cycle (`onSyncDue()`, `deepSleep()`) — the wake counter is
+  `RTC_DATA_ATTR`, so it survives deep sleep. `onSyncDue()` takes a plain
+  function pointer (no `std::function`, which can heap-allocate) and runs it
+  only on a sync wake, keeping the private `syncDue()` test inside `Sys`.
+  Never takes a `Config`
   dependency; callers pass in whatever device-agnostic values it needs (e.g.
   timezone, NTP server). Also declares `urlEncode()`, a free function (no
   device state) rather than a `Sys` method.

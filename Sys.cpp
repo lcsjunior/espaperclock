@@ -62,8 +62,11 @@ bool SysClass::isTimeSet() const {
   return (timeInfo.tm_year + 1900) >= MIN_VALID_YEAR;
 }
 
-bool SysClass::syncDue() const {
-  return wakeCount == 0;
+void SysClass::onSyncDue(void (*task)()) const {
+  if (!syncDue())
+    return;
+
+  task();
 }
 
 void SysClass::deepSleep(uint32_t intervalS, uint32_t syncIntervalWakes) const {
@@ -71,6 +74,10 @@ void SysClass::deepSleep(uint32_t intervalS, uint32_t syncIntervalWakes) const {
   log_i("Wake %lu/%lu, entering deep sleep for %lu s", wakeCount,
         syncIntervalWakes, intervalS);
   ESP.deepSleep(intervalS * 1000000ULL);
+}
+
+bool SysClass::syncDue() const {
+  return wakeCount == 0;
 }
 
 void urlEncode(char* dest, size_t destSize, const char* src) {
