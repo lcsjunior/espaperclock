@@ -5,7 +5,6 @@
 #include "CoreUtils.h"
 
 #define OWM_HTTP_TIMEOUT_MS 8000UL
-#define OWM_REFRESH_INTERVAL_MS 600000UL
 
 constexpr const char* OWM_URL =
     "http://api.openweathermap.org/data/2.5/"
@@ -16,15 +15,6 @@ WeatherClass Weather;
 void WeatherClass::begin(const char* apiKey, const char* location) {
   apiKey_ = apiKey;
   location_ = location;
-  lastRefreshMs_ = millis() - OWM_REFRESH_INTERVAL_MS;
-}
-
-void WeatherClass::refresh() {
-  if (millis() - lastRefreshMs_ < OWM_REFRESH_INTERVAL_MS)
-    return;
-
-  request();
-  lastRefreshMs_ = millis();
 }
 
 float WeatherClass::temperature() const {

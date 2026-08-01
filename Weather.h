@@ -9,7 +9,6 @@
 class WeatherClass {
  public:
   void begin(const char* apiKey, const char* location);
-  void refresh();
   void request();
 
   float temperature() const;
@@ -22,7 +21,6 @@ class WeatherClass {
   const char* location_ = nullptr;
   float temperature_ = 0.0f;
   char description_[48] = {0};
-  unsigned long lastRefreshMs_ = 0;
 
   bool hasConfig() const;
   const char* formatUrl() const;
