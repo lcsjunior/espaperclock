@@ -12,7 +12,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "f=$(jq -r '.tool_input.file_path // empty'); [[ \"$f\" =~ \\.(cpp|h|hpp)$ ]] && clang-format -i \"$f\" || true",
+						"command": "f=$(jq -r '.tool_input.file_path // empty'); [[ \"$f\" =~ \\.(cpp|h|hpp|ino)$ ]] && clang-format -i \"$f\" || true",
 						"statusMessage": "Formatting C++..."
 					}
 				]
