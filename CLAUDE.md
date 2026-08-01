@@ -11,8 +11,6 @@ Implemented: WiFi connect, NTP time sync. Planned: display, deep sleep,
 OpenWeatherMap fetch (see `README.md`'s TODO).
 
 Toolchain: Arduino IDE plus `arduino-cli` for reproducible/scripted builds.
-`old/` is reference-only — never edit it, and don't use it to infer what's
-pending.
 
 ## Architecture
 
@@ -20,8 +18,8 @@ pending.
 - `Config.h`/`Config.cpp` — `ConfigClass` (singleton `Config`): read-only
   LittleFS + ArduinoJson load of `/config.json` — WiFi SSID/password,
   timezone, NTP server.
-- `Device.h`/`Device.cpp` — `waitWifi()`/`waitNtp()` wait helpers,
-  `formatDateTime()`/`isTimeSet()`.
+- `CoreUtils.h`/`CoreUtils.cpp` — `waitWifi()`/`waitNtp()` wait helpers,
+  `formatDateTime()`/`isTimeSet()`/`urlEncode()`.
 - `data/config.json` — the actual secrets, git-ignored, flashed to the
   device separately from the sketch (see Build, Upload). Never written by
   the firmware. `data/config.json.example` is the tracked template.
