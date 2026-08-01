@@ -30,7 +30,7 @@ Toolchain: Arduino IDE plus `arduino-cli` for reproducible/scripted builds.
   sleep/wake-counter cycle (`onSyncDue()`, `deepSleep()`) — the wake counter is
   `RTC_DATA_ATTR`, so it survives deep sleep. `onSyncDue()` takes a plain
   function pointer (no `std::function`, which can heap-allocate) and runs it
-  only on a sync wake, keeping the private `syncDue()` test inside `Sys`.
+  only on a sync wake, keeping the wake-counter test inside `Sys`.
   Never takes a `Config`
   dependency; callers pass in whatever device-agnostic values it needs (e.g.
   timezone, NTP server). Also declares `urlEncode()`, a free function (no

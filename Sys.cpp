@@ -63,9 +63,8 @@ bool SysClass::isTimeSet() const {
 }
 
 void SysClass::onSyncDue(void (*task)()) const {
-  if (!syncDue())
+  if (wakeCount != 0)
     return;
-
   task();
 }
 
@@ -74,10 +73,6 @@ void SysClass::deepSleep(uint32_t intervalS, uint32_t syncIntervalWakes) const {
   log_i("Wake %lu/%lu, entering deep sleep for %lu s", wakeCount,
         syncIntervalWakes, intervalS);
   ESP.deepSleep(intervalS * 1000000ULL);
-}
-
-bool SysClass::syncDue() const {
-  return wakeCount == 0;
 }
 
 void urlEncode(char* dest, size_t destSize, const char* src) {

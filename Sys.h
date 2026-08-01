@@ -13,9 +13,6 @@ class SysClass {
   bool isTimeSet() const;
   void onSyncDue(void (*task)()) const;
   void deepSleep(uint32_t intervalS, uint32_t syncIntervalWakes) const;
-
- private:
-  bool syncDue() const;
 };
 
 extern SysClass Sys;
