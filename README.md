@@ -1,11 +1,10 @@
 # EPaperClock
 
-ESP32 firmware (PlatformIO/Arduino) for a 1.54" e-paper clock. Shows a 24h
-digital clock (NTP, configured timezone) and the current weather — condition
-icon + temperature in °C — from the OpenWeatherMap *Current Weather* API.
+ESP32 firmware (Arduino IDE / `arduino-cli`) for a 1.54" e-paper clock. Shows
+a 24h digital clock (NTP, configured timezone).
 
 > **Status:** the panel hasn't arrived — nothing is drawn yet, and `GxEPD2` /
-> `Adafruit GFX` are out of `platformio.ini`.
+> `Adafruit GFX` aren't installed.
 
 ## Display layout
 
@@ -27,46 +26,26 @@ font.
 ## Hardware
 
 Waveshare 1.54" e-Paper (V2) — 200×200 monochrome `SSD1681`, partial refresh —
-on an ESP32, wired to the VSPI bus.
+on a LOLIN C3 Pico (ESP32-C3), wired to the FSPI bus.
 
-| E-paper | GPIO | Note |
+| E-paper | Function | LOLIN C3 Pico |
 |---|---|---|
-| BUSY | GPIO4  | input |
-| RST  | GPIO16 | output |
-| DC   | GPIO17 | output |
-| CS   | GPIO19 | VSPI MISO, free; avoids the strapping pin GPIO5 |
-| CLK (SCK)  | GPIO18 | VSPI SCK |
-| DIN (MOSI) | GPIO23 | VSPI MOSI |
-| GND  | GND | |
-| 3.3V | 3V3 | |
+| VCC  | 3.3V power        | 3V3 |
+| GND  | Ground            | GND |
+| DIN  | MOSI (SPI data)   | IO6 |
+| CLK  | SCK (SPI clock)   | IO4 |
+| CS   | Chip Select       | IO3 |
+| DC   | Data / Command    | IO2 |
+| RST  | Reset             | IO1 |
+| BUSY | Busy status       | IO0 |
 
-- [Lolin32 Lite pinout](assets/images/Lolin32_pinout03.png)
+- [LOLIN C3 Pico pinout](assets/images/wemos_c3_pico_pinout.png)
 - [Waveshare 1.54" e-Paper — ESP32 wiring](https://www.waveshare.com/wiki/1.54inch_e-Paper_Module_Manual#ESP32.2F8266)
-
-## HTTP endpoints
-
-| Endpoint | Method | Auth | Description |
-|---|---|---|---|
-| `/health` | GET | none | Liveness check; returns status, datetime, temperature and weather. |
-
-## Weather
-
-OpenWeather *Current Weather Data*:
-
-```
-http://api.openweathermap.org/data/2.5/weather?q=Juiz%20de%20Fora,BR&units=metric&appid=<API_KEY>
-```
-
-Response fields used: `main.temp`, `weather[0].icon` / `weather[0].id` (icon
-mapping), `weather[0].description`.
-
-`OWM_HTTP_TIMEOUT_MS` and `OWM_REFRESH_INTERVAL_MS` are firmware tunables in
-`platformio.ini`, not user settings.
 
 ## TODO
 
 1. [x] Migrate all code to ESP32.
-2. [ ] Move to the LOLIN C3 Pico (ESP32-C3): board, e-paper pinout, FSPI.
+2. [x] Move to the LOLIN C3 Pico (ESP32-C3): board, e-paper pinout, FSPI.
 3. [ ] Deep sleep with NTP sync every 24h.
 4. [ ] Display: partial refresh only; full refresh after NTP sync.
 5. [ ] Run on the 600 mAh JST LiPo.

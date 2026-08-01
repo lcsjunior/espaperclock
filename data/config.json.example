@@ -1,0 +1,6 @@
+{
+  "wifi_ssid": "your-ssid",
+  "wifi_password": "your-password",
+  "timezone": "BRT3",
+  "ntp_server": "br.pool.ntp.org"
+}

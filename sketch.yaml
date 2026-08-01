@@ -1,0 +1,11 @@
+profiles:
+  lolin_c3_pico:
+    fqbn: esp32:esp32:lolin_c3_pico
+    platforms:
+      - platform: esp32:esp32 (3.3.11)
+    libraries:
+      - ArduinoJson (7.4.3)
+    port_config:
+      baudrate: 115200
+
+default_profile: lolin_c3_pico

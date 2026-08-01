@@ -4,49 +4,63 @@ Guidance for Claude Code (claude.ai/code) when working in this repository.
 
 ## Overview
 
-ESP32 firmware for a 1.54" e-paper clock — see `README.md`. The panel hasn't
-arrived: WiFi provisioning, settings, OTA, NTP time sync and OpenWeatherMap
-fetch exist; display code does not.
+ESP32-C3 firmware for a 1.54" e-paper clock — see `README.md`. The panel
+hasn't arrived, so there's no display code yet.
 
-**Migration in progress**: the project is moving from PlatformIO to the
-Arduino IDE. The pre-migration source (matching the layout below) currently
-sits under `old/` for reference; `EPaperClock.ino` is the new sketch, not yet
-populated. Until the migration lands, treat the paths below as describing
-`old/<path>`, and validate the "Build, Upload" section against whichever
-toolchain is actually in use before relying on it.
+Implemented: WiFi connect, NTP time sync. Planned: display, deep sleep,
+OpenWeatherMap fetch (see `README.md`'s TODO).
 
-## Architecture (where things live)
+Toolchain: Arduino IDE plus `arduino-cli` for reproducible/scripted builds.
+`old/` is reference-only — never edit it, and don't use it to infer what's
+pending.
 
-- `src/main.cpp` — boot sequence and `loop()`.
-- `src/modules/` — `wifi_setup`: `initWifi()` does the captive portal, custom
-  fields, save callback, `configTzTime` and OTA; `http_server` (routes go on the
-  WiFiManager portal server, after `initWifi()`).
-- `lib/fs/` — `AppConfig`: LittleFS + ArduinoJson persistence of `/config.json`.
-- `lib/weather/` — `Weather` (`OpenWeatherMap`): *Current Weather* fetch,
-  throttled internally; `refresh()` runs every `loop()`, reads are cached.
-- `lib/core/` — `clock`: time formatting and NTP-synced check; `device`: URL
-  encode, AP name, WiFi/NTP wait.
+## Architecture
 
-Anything user-configurable belongs in the portal plus `Config`, not in build
-flags.
+- `EPaperClock.ino` — boot sequence, `setup()`/`loop()`.
+- `Config.h`/`Config.cpp` — `ConfigClass` (singleton `Config`): read-only
+  LittleFS + ArduinoJson load of `/config.json` — WiFi SSID/password,
+  timezone, NTP server.
+- `Device.h`/`Device.cpp` — `waitWifi()`/`waitNtp()` wait helpers,
+  `formatDateTime()`/`isTimeSet()`.
+- `data/config.json` — the actual secrets, git-ignored, flashed to the
+  device separately from the sketch (see Build, Upload). Never written by
+  the firmware. `data/config.json.example` is the tracked template.
+- `sketch.yaml` — pins the `esp32:esp32` core version and library versions
+  for `arduino-cli`; not read by the Arduino IDE GUI.
+
+Every source file lives flat at the repo root, next to `EPaperClock.ino`, so
+it shows up as a tab in the Arduino IDE — see `.claude/rules/code-conventions.md`.
+
+User-configurable values belong in `Config`, sourced from `data/config.json`
+— never hardcoded, never in build flags.
 
 ## Build, Upload
 
+Board: **LOLIN C3 Pico** (`esp32:esp32:lolin_c3_pico`).
+
+Arduino IDE:
+
+- `Tools > Board` to confirm/select the board.
+- Verify / Upload flash the sketch over USB — the only upload path (no OTA).
+- Serial Monitor: `Ctrl+Shift+M`, 115200 baud.
+- `data/config.json` → device: `Ctrl+Shift+P` → "Upload LittleFS to
+  Pico/ESP8266/ESP32" (`arduino-littlefs-upload` plugin). Flashes the
+  filesystem separately from the sketch binary — close the Serial Monitor
+  first.
+
+`arduino-cli`, pinned by `sketch.yaml`:
+
 ```bash
-pio run                  # compile
-pio run --target upload  # flash over USB
-pio device monitor       # serial monitor @ 115200 baud
+arduino-cli compile --upload --profile lolin_c3_pico -p /dev/ttyACM0 .
+arduino-cli monitor --profile lolin_c3_pico -p /dev/ttyACM0
 ```
 
-Single env; the board is named only in `platformio.ini`. There is no test
-suite — a clean `pio run` is the definition of done.
+No test suite — a clean compile/upload is the definition of done.
 
 - **Always ask for explicit user confirmation before any upload/flash** — it
   writes to physical hardware.
-- USB is the default upload path; keep it that way. OTA is opt-in per run or via
-  an untracked `local_settings.ini`.
 
 ## Conventions
 
-**All code must follow `.claude/rules/code-conventions.md`** — the single source
-of truth. Read it before writing or reviewing.
+**All code must follow `.claude/rules/code-conventions.md`** — the single
+source of truth. Read it before writing or reviewing.
