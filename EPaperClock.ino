@@ -28,7 +28,6 @@ void setup() {
   Config.load();
 
   Sys.everyCycle(resync);
-
   Sys.setTimezone(Config.timezone());
 
   Sys.deepSleep(DEEP_SLEEP_INTERVAL_S, SYNC_INTERVAL_WAKES);
