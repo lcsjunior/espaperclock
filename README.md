@@ -68,3 +68,4 @@ definition of done.
 6. [ ] Retry the OpenWeather request on failure.
 7. [x] Cache the weather result (RTC memory) across deep sleep.
 8. [x] Use HTTPS for the OpenWeather request.
+9. [ ] Turn the display into a weather station only, dropping the clock.
