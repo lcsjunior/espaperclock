@@ -28,16 +28,16 @@ font.
 Waveshare 1.54" e-Paper (V2) — 200×200 monochrome `SSD1681`, partial refresh —
 on a LOLIN C3 Pico (ESP32-C3), wired to the FSPI bus.
 
-| E-paper | Function | LOLIN C3 Pico |
-|---|---|---|
-| VCC  | 3.3V power        | 3V3 |
-| GND  | Ground            | GND |
-| DIN  | MOSI (SPI data)   | IO6 |
-| CLK  | SCK (SPI clock)   | IO4 |
-| CS   | Chip Select       | IO3 |
-| DC   | Data / Command    | IO2 |
-| RST  | Reset             | IO1 |
-| BUSY | Busy status       | IO0 |
+| E-paper | Function | LOLIN C3 Pico | Wire color |
+|---|---|---|---|
+| VCC  | 3.3V power        | 3V3 | ${\color{#808080}\textsf{Gray}}$ |
+| GND  | Ground            | GND | ${\color{#8B4513}\textsf{Brown}}$ |
+| DIN  | MOSI (SPI data)   | IO6 | ${\color{#1E6FD9}\textsf{Blue}}$ |
+| CLK  | SCK (SPI clock)   | IO4 | ${\color{#D4A800}\textsf{Yellow}}$ |
+| CS   | Chip Select       | IO3 | ${\color{#E8730C}\textsf{Orange}}$ |
+| DC   | Data / Command    | IO2 | ${\color{#2E9E44}\textsf{Green}}$ |
+| RST  | Reset             | IO1 | ${\color{#BDBDBD}\textsf{White}}$ |
+| BUSY | Busy status       | IO0 | ${\color{#7B3FA0}\textsf{Purple}}$ |
 
 - [LOLIN C3 Pico pinout](assets/images/wemos_c3_pico_pinout.png)
 - [Waveshare 1.54" e-Paper — ESP32 wiring](https://www.waveshare.com/wiki/1.54inch_e-Paper_Module_Manual#ESP32.2F8266)
