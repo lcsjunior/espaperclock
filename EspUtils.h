@@ -1,5 +1,5 @@
-#ifndef CORE_UTILS_H
-#define CORE_UTILS_H
+#ifndef ESP_UTILS_H
+#define ESP_UTILS_H
 
 #include <Arduino.h>
 
@@ -10,4 +10,4 @@ const char* formatDateTime();
 bool isTimeSet();
 void urlEncode(char* dest, size_t destSize, const char* src);
 
-#endif  // CORE_UTILS_H
+#endif  // ESP_UTILS_H
