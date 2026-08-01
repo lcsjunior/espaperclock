@@ -61,7 +61,7 @@ definition of done.
 
 1. [x] Migrate all code to ESP32.
 2. [x] Move to the LOLIN C3 Pico (ESP32-C3): board, e-paper pinout, FSPI.
-3. [ ] Deep sleep with NTP sync every 1h.
+3. [ ] Deep sleep with NTP/Wheater sync every 1h.
 4. [ ] Display: partial refresh only; full refresh after NTP sync.
 5. [ ] Run on the 600 mAh JST LiPo.
 6. [ ] Retry the OpenWeather request on failure.
