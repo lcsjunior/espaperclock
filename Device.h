@@ -12,7 +12,7 @@ class DeviceClass {
   const char* formatDateTime() const;
   bool isTimeSet() const;
   void urlEncode(char* dest, size_t destSize, const char* src) const;
-  bool shouldSync() const;
+  bool syncDue() const;
   void deepSleep(uint32_t intervalS, uint32_t syncIntervalWakes) const;
 };
 

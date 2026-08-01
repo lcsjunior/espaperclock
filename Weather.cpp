@@ -26,6 +26,30 @@ void WeatherClass::begin(const char* apiKey, const char* location) {
   loadCaCert();
 }
 
+void WeatherClass::request() {
+  if (!hasConfig())
+    return;
+
+  wifiClient_.setCACert(caCert);
+  http_.begin(wifiClient_, formatUrl());
+  http_.setTimeout(OWM_HTTP_TIMEOUT_MS);
+  const int statusCode = http_.GET();
+  processResponse(statusCode);
+  http_.end();
+}
+
+float WeatherClass::temperature() const {
+  return cachedTemperature;
+}
+
+const char* WeatherClass::description() const {
+  return cachedDescription;
+}
+
+const char* WeatherClass::cityName() const {
+  return cachedCityName;
+}
+
 void WeatherClass::loadCaCert() {
   File file = LittleFS.open(OWM_CA_CERT_PATH, "r");
   if (!file) {
@@ -44,18 +68,6 @@ void WeatherClass::loadCaCert() {
   const size_t length = file.readBytes(caCert, size);
   file.close();
   caCert[length] = '\0';
-}
-
-float WeatherClass::temperature() const {
-  return cachedTemperature;
-}
-
-const char* WeatherClass::description() const {
-  return cachedDescription;
-}
-
-const char* WeatherClass::cityName() const {
-  return cachedCityName;
 }
 
 bool WeatherClass::hasConfig() const {
@@ -86,18 +98,6 @@ const char* WeatherClass::formatUrl() const {
   return url;
 }
 
-void WeatherClass::request() {
-  if (!hasConfig())
-    return;
-
-  wifiClient_.setCACert(caCert);
-  http_.begin(wifiClient_, formatUrl());
-  http_.setTimeout(OWM_HTTP_TIMEOUT_MS);
-  const int statusCode = http_.GET();
-  processResponse(statusCode);
-  http_.end();
-}
-
 bool WeatherClass::isStatusOk(int statusCode) const {
   if (statusCode != HTTP_CODE_OK) {
     log_e("OWM GET failed, code=%d", statusCode);
@@ -107,7 +107,7 @@ bool WeatherClass::isStatusOk(int statusCode) const {
 }
 
 bool WeatherClass::parseJson(JsonDocument& doc) {
-  DeserializationError err = deserializeJson(doc, http_.getStream());
+  const DeserializationError err = deserializeJson(doc, http_.getStream());
   if (err) {
     log_e("OWM parse error: %s", err.c_str());
     return false;

@@ -11,7 +11,7 @@
 #define SYNC_INTERVAL_WAKES 60UL
 
 static void resync() {
-  if (!Device.shouldSync())
+  if (!Device.syncDue())
     return;
 
   WiFi.begin(Config.wifiSsid(), Config.wifiPassword());

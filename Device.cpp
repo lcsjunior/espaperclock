@@ -50,7 +50,7 @@ void DeviceClass::setTimezone(const char* timezone) const {
 
 const char* DeviceClass::formatDateTime() const {
   static char dateTime[20];
-  time_t now = time(nullptr);
+  const time_t now = time(nullptr);
   strftime(dateTime, sizeof(dateTime), "%Y-%m-%d %H:%M:%S", localtime(&now));
   return dateTime;
 }
@@ -83,7 +83,7 @@ void DeviceClass::urlEncode(char* dest, size_t destSize,
   dest[j] = '\0';
 }
 
-bool DeviceClass::shouldSync() const {
+bool DeviceClass::syncDue() const {
   return wakeCount == 0;
 }
 
