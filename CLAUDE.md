@@ -24,7 +24,7 @@ Toolchain: Arduino IDE plus `arduino-cli` for reproducible/scripted builds.
 - `Config.h`/`Config.cpp` — `ConfigClass` (singleton `Config`): read-only
   LittleFS + ArduinoJson load of `/config.json` — WiFi SSID/password,
   timezone, NTP server.
-- `CoreUtils.h`/`CoreUtils.cpp` — `waitWifi()`/`waitNtp()` wait helpers,
+- `EspUtils.h`/`EspUtils.cpp` — `waitWifi()`/`waitNtp()` wait helpers,
   `formatDateTime()`/`isTimeSet()`/`urlEncode()`.
 - `Weather.h`/`Weather.cpp` — `WeatherClass` (singleton `Weather`): HTTPS
   OpenWeatherMap fetch, TLS-pinned via `data/owm-ca.pem`. Temperature and

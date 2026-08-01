@@ -4,7 +4,7 @@
 #include <LittleFS.h>
 #include <new>
 
-#include "CoreUtils.h"
+#include "EspUtils.h"
 
 #define OWM_HTTP_TIMEOUT_MS 8000UL
 
