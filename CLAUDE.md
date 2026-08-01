@@ -4,42 +4,62 @@ Guidance for Claude Code (claude.ai/code) when working in this repository.
 
 ## Overview
 
-ESP32 firmware for a 1.54" e-paper clock — see `README.md`. The panel hasn't
-arrived: WiFi provisioning, settings, OTA, NTP time sync and OpenWeatherMap
-fetch exist; display code does not.
+ESP32-C3 firmware for a 1.54" e-paper clock — see `README.md`. The panel
+hasn't arrived, so there's no display code yet.
 
-## Architecture (where things live)
+Implemented: WiFi connect, NTP time sync. Planned: display, deep sleep,
+OpenWeatherMap fetch (see `README.md`'s TODO).
 
-- `src/main.cpp` — boot sequence and `loop()`.
-- `src/modules/` — `wifi_setup`: `initWifi()` does the captive portal, custom
-  fields, save callback, `configTzTime` and OTA; `http_server` (routes go on the
-  WiFiManager portal server, after `initWifi()`).
-- `lib/fs/` — `AppConfig`: LittleFS + ArduinoJson persistence of `/config.json`.
-- `lib/weather/` — `Weather` (`OpenWeatherMap`): *Current Weather* fetch,
-  throttled internally; `refresh()` runs every `loop()`, reads are cached.
-- `lib/core/` — `clock`: time formatting and NTP-synced check; `device`: URL
-  encode, AP name, WiFi/NTP wait.
+Toolchain: Arduino IDE plus `arduino-cli` for reproducible/scripted builds.
+`old/` is reference-only — never edit it, and don't use it to infer what's
+pending.
 
-Anything user-configurable belongs in the portal plus `Config`, not in build
-flags.
+## Architecture
+
+- `EPaperClock.ino` — boot sequence, `setup()`/`loop()`.
+- `Config.h`/`Config.cpp` — `ConfigClass` (singleton `Config`): read-only
+  LittleFS + ArduinoJson load of `/config.json` — WiFi SSID/password,
+  timezone, NTP server.
+- `Device.h`/`Device.cpp` — `waitWifi()`/`waitNtp()` wait helpers,
+  `formatDateTime()`/`isTimeSet()`.
+- `data/config.json` — the actual secrets, git-ignored, flashed to the
+  device separately from the sketch (see Build, Upload). Never written by
+  the firmware. `data/config.json.example` is the tracked template.
+- `data/owm-ca.pem` — root CA pinned for the OpenWeatherMap HTTPS request
+  (`Weather.cpp`), git-ignored, flashed the same way as `config.json`.
+  `data/owm-ca.pem.example` documents how to fetch it.
+- `sketch.yaml` — pins the `esp32:esp32` core version and library versions
+  for `arduino-cli`; not read by the Arduino IDE GUI.
+
+Every source file lives flat at the repo root, next to `EPaperClock.ino`, so
+it shows up as a tab in the Arduino IDE — see `.claude/rules/code-conventions.md`.
+
+User-configurable values belong in `Config`, sourced from `data/config.json`
+— never hardcoded, never in build flags.
 
 ## Build, Upload
 
+Board: **LOLIN C3 Pico** (`esp32:esp32:lolin_c3_pico`), pinned in
+`sketch.yaml`. Partition Scheme is **Huge APP (3MB No OTA/1MB SPIFFS)** —
+no OTA, all uploads are over serial. `Tools > Partition Scheme` in the IDE
+GUI must match (`sketch.yaml` doesn't apply there, same caveat as `DebugLevel`
+in `code-conventions.md`); a mismatch flashes LittleFS data at the wrong
+offset and corrupts the app partition.
+
 ```bash
-pio run                  # compile
-pio run --target upload  # flash over USB
-pio device monitor       # serial monitor @ 115200 baud
+arduino-cli compile --upload --profile lolin_c3_pico -p /dev/ttyACM0 .
+arduino-cli monitor --profile lolin_c3_pico -p /dev/ttyACM0
+./scripts/upload-littlefs.sh   # flashes data/config.json
 ```
 
-Single env; the board is named only in `platformio.ini`. There is no test
-suite — a clean `pio run` is the definition of done.
+`PORT`/`CHIP`/`BAUD`/`PARTITION_OFFSET`/`PARTITION_SIZE` are overridable env
+vars on `upload-littlefs.sh`. No test suite — a clean compile/upload is the
+definition of done.
 
 - **Always ask for explicit user confirmation before any upload/flash** — it
   writes to physical hardware.
-- USB is the default upload path; keep it that way. OTA is opt-in per run or via
-  an untracked `local_settings.ini`.
 
 ## Conventions
 
-**All code must follow `.claude/rules/code-conventions.md`** — the single source
-of truth. Read it before writing or reviewing.
+**All code must follow `.claude/rules/code-conventions.md`** — the single
+source of truth. Read it before writing or reviewing.

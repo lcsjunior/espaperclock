@@ -1,116 +1,112 @@
 # Project Conventions
 
-Target is the **ESP32** only.
-
-When a rule here conflicts with a hardware constraint (pinout, timing, memory),
-the hardware wins.
+Target: **ESP32** only. Hardware constraints (pinout, timing, memory) override
+any rule here.
 
 ## Memory
 
-- No `malloc()`/`new` at runtime; allocate in global constructors only.
-- Never use Arduino `String` — `char[]` + `snprintf`.
+- No `malloc()`/`new` at runtime, except a single allocation at setup sized
+  exactly to data whose length is only known then (e.g. read from storage);
+  kept and never freed for the program's life, same reasoning as the `static`
+  exception below. Never in `loop()` or on a repeating path.
+- No Arduino `String` — use `char[]` + `snprintf`.
 - Fixed-size buffers, sized from the protocol/payload.
-- `static` a buffer only when its pointer outlives the call (the function
-  returns it) or when it is a `const` lookup table. The loop task has an 8 KB
-  stack, so a few hundred bytes of local buffer are fine — an unnecessary
-  `static` costs RAM forever and makes the function non-reentrant.
-- Diagnose with `ESP.getFreeHeap()` and `ESP.getMinFreeHeap()`.
+- `static` a buffer only if it's returned by pointer, it's a `const` lookup
+  table, or it caches data loaded once (e.g. from storage) and reused for the
+  rest of the program's life; otherwise keep it local. The 8 KB loop stack has
+  room, and `static` costs RAM forever and breaks reentrancy.
+- Diagnose with `ESP.getFreeHeap()` / `ESP.getMinFreeHeap()`.
 
 ## Flash strings
 
-**Forbidden** — flash is memory-mapped, so the machinery is a no-op: no
-`PROGMEM`, `PSTR`, `FPSTR`, `F()`, no `_P` variant (`snprintf_P`, `strcpy_P`, …).
-Constant strings are plain literals or `constexpr const char*`, copied with
-`strlcpy`. No exceptions.
+Forbidden: `PROGMEM`, `PSTR`, `FPSTR`, `F()`, `_P` variants — flash is
+memory-mapped, so they're no-ops. Use plain literals or `constexpr const
+char*`, copied with `strlcpy`.
 
 ## Logging
 
-- Use the core macros: `log_e`, `log_w`, `log_i`, `log_d`.
-- Plain literal formats, no `F()`/`PSTR`, no trailing `\n` — the macro adds it.
-- `-DCORE_DEBUG_LEVEL=3` in `platformio.ini` is what makes `log_i` emit.
-- `Serial.print*` is reserved for the wait helpers in `lib/core/device.cpp`,
-  which print progress dots inline.
+- Use `log_e`/`log_w`/`log_i`/`log_d` — plain literals, no `F()`/`PSTR`, no
+  trailing `\n`.
+- `Tools > Core Debug Level` in the Arduino IDE (`Info` or above) is what
+  makes `log_i` emit; for `arduino-cli` it's the FQBN's `DebugLevel` option.
+- `Serial.print*` only in the wait helpers (`Device.cpp`), for progress dots.
 
 ## Constants
 
-- Default to `constexpr` (`constexpr const char*`, `constexpr int`, …).
-- `#define` (`UPPER_SNAKE_CASE`) only for pins and for timeouts/intervals, with
-  a suffix stating the unit. Our own throttles and waits are `_MS` with a `UL`
-  literal; a value handed to a library adopts that library's unit (`_S` for
-  `setConfigPortalTimeout`), never converted at the call site.
-- A macro fed by a build flag *may* carry an `#ifndef` fallback at the top of
-  each `.cpp` consuming it — optional, for tunables with a sensible default.
+- Default to `constexpr`.
+- `#define` (`UPPER_SNAKE_CASE`) only for pins, timeouts/intervals, and fixed
+  peripheral settings (e.g. `SERIAL_BAUD_RATE`), with a unit suffix — ours are
+  `_MS`/`UL`, a library call keeps that library's own unit.
+- `SERIAL_BAUD_RATE` is always `115200`.
+- No `#ifndef` fallback guards — the Arduino IDE build has no `build_flags` to
+  feed them.
 
 ## Timing
 
-- Never `delay()` in `loop()`; use elapsed-time checks against `millis()`.
-- `loop()` is a FreeRTOS task sharing the CPU with the WiFi stack — keep
-  iterations short so the task watchdog stays fed.
+- No `delay()` in `loop()` — use `millis()` elapsed-time checks.
+- `loop()` shares the CPU with WiFi via FreeRTOS — keep iterations short.
 
 ## ISR / callbacks
 
-- Handlers set flags or toggle outputs, nothing else. No `delay()`, `Serial`,
-  or sensor reads.
-- Mark them `IRAM_ATTR`.
-- `Wire`, `SPI` and `Serial` only from the main loop.
+- Only set flags or toggle outputs — no `delay()`, `Serial`, sensor reads.
+- Mark `IRAM_ATTR`.
+- `Wire`/`SPI`/`Serial` only from the main loop.
 
 ## Hardware access
 
-- Reach peripherals through their abstraction layer, never the driver directly;
-  assume throttling lives inside it. A direct call needs a comment saying why.
+Go through the abstraction layer, never the driver directly (throttling lives
+there). A direct call needs a comment explaining why.
 
 ## Includes
 
-- A `.cpp` opens with its own header, then a blank line, then `<angle>` includes
-  in alphabetical order, then a blank line and any local `"quoted"` headers.
-- A header includes only what its own declarations need. Anything the
-  implementation alone uses belongs in the `.cpp`.
+`.cpp`: own header, blank line, `<angle>` includes (alphabetical), blank line,
+local `"quoted"` includes. Headers include only what their declarations need;
+the rest goes in the `.cpp`.
 
 ## Naming
 
-Arduino convention, which overrides any naming recommended in skills:
+Arduino convention overrides skill defaults:
 
-- `PascalCase` — classes and types.
-- `camelCase` — methods, functions, variables, attributes.
-- `UPPER_SNAKE_CASE` — macros and pins.
-- Buffers are named for what they hold (`url`, `payload`, `dateTime`), never
-  `buf` nor a `Buf` suffix.
-- Interfaces take the plain name (`TemperatureSensor`, no `I` prefix); when it
-  collides with a concrete class, that class gets the `Class` suffix, like the
-  Arduino core (`extern WiFiClass WiFi;`).
-- Global singletons are `PascalCase` like the Arduino core libs (`Serial`,
-  `Wire`): `extern DisplayManager Display;` in the header, defined at the top of
-  the `.cpp`, right after the includes.
-- A file that holds a class takes that class's name verbatim (`Config.h`,
-  `OpenWeatherMap.cpp`); when the class carries the `Class` suffix, the file
-  takes the singleton's name instead (`LedClass` lives in `Led.h`), again like
-  the Arduino core (`WiFiClass` in `WiFi.h`).
+- `PascalCase`: classes/types (`Weather`, `AppConfig`).
+- `camelCase`: everything else — methods, functions, variables, attributes.
+- `UPPER_SNAKE_CASE`: macros, pins.
+- Buffers named for content (`url`, `payload`), never `buf`/`Buf`.
+- Interfaces take the plain name; on collision with a concrete class, the
+  class gets the `Class` suffix (`WiFiClass`/`WiFi`).
+- Singletons are `PascalCase` (`Serial`, `Wire`) — `extern` in the header,
+  defined at the top of the `.cpp`.
+- A file takes its class's name (`Config.h`); if the class has the `Class`
+  suffix, the file takes the singleton's name instead (`Led.h` for
+  `LedClass`).
+- Every sketch file is `PascalCase`, class or not (`Device.h`), like
+  `Arduino.h` itself.
 
 ## Style
 
-- Code, identifiers and log strings in **English**.
-- No comments — names must reveal intent (`heaterRelay`, not `obj`).
-- Class sections in order: `public:` (constructor first), `protected:`,
-  `private:` (attributes before methods). Definitions in the `.cpp` follow the
-  declaration order of the header.
-- Separate a body's guard clauses, its work and its result with a blank line.
-  Skip it when there is nothing to separate: a straight-line body, or a single
-  statement closing a block (a guard or a loop).
-- `const` on methods that do not modify state, and on locals never reassigned.
+- English only — code, identifiers, logs.
+- No comments — names carry intent.
+- Class layout: `public` (ctor first) → `protected` → `private` (attributes
+  then methods); `.cpp` follows header order.
+- Blank line separates guard clauses, body, and result — skip when there's
+  nothing to separate.
+- `const` on non-mutating methods and never-reassigned locals.
 - Prefer early return and the ternary over nested `if/else`.
-- Never return a value no caller consumes: if every call site ignores it, the
-  method is `void` and logs its own failure.
+- Unused return value → make the function `void` and log failure internally.
 
 ## Dependencies
 
-Pinned by version in `platformio.ini`. Do not add, remove or update one without
-explicit approval.
+Pinned in `sketch.yaml` (`esp32:esp32` core version, library versions),
+matching what's installed via the Arduino IDE's Boards/Library Manager. No
+add/remove/update without explicit approval.
+
+## Sensitive data
+
+- No secrets (credentials, keys, tokens) in code, logs, commits, docs, or
+  output — they live in `data/config.json` (git-ignored).
+- No usernames in paths — `~` instead of `/home/<user>`.
 
 ## Documentation
 
-Keep `README.md` (the product) and `CLAUDE.md` (how to work in the repo) current
-in the same change set, without overlap between them.
-
-The `README.md` **TODO list is the user's**: the only edit allowed on your own
-initiative is ticking `[ ]` → `[x]`. Never reword, reorder, renumber, add or
-drop an item unless asked.
+Keep `README.md` (product) and `CLAUDE.md` (repo workflow) current together,
+without overlap. `README.md`'s TODO list is the user's — the only allowed
+edit is `[ ]` → `[x]`.
