@@ -3,7 +3,7 @@
 #include <WiFi.h>
 
 #include "Config.h"
-#include "Device.h"
+#include "Sys.h"
 #include "Weather.h"
 
 #define SERIAL_BAUD_RATE 115200
@@ -11,14 +11,14 @@
 #define SYNC_INTERVAL_WAKES 60UL
 
 static void resync() {
-  if (!Device.syncDue())
+  if (!Sys.syncDue())
     return;
 
   WiFi.begin(Config.wifiSsid(), Config.wifiPassword());
-  Device.waitWifi();
+  Sys.waitWifi();
 
-  Device.beginNtp(Config.timezone(), Config.ntpServer());
-  Device.waitNtp();
+  Sys.beginNtp(Config.timezone(), Config.ntpServer());
+  Sys.waitNtp();
 
   Weather.begin(Config.owmApiKey(), Config.owmLocation());
   Weather.request();
@@ -32,9 +32,9 @@ void setup() {
 
   resync();
 
-  Device.setTimezone(Config.timezone());
+  Sys.setTimezone(Config.timezone());
 
-  Device.deepSleep(DEEP_SLEEP_INTERVAL_S, SYNC_INTERVAL_WAKES);
+  Sys.deepSleep(DEEP_SLEEP_INTERVAL_S, SYNC_INTERVAL_WAKES);
 }
 
 void loop() {
