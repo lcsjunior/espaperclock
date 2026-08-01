@@ -15,17 +15,21 @@ Toolchain: Arduino IDE plus `arduino-cli` for reproducible/scripted builds.
 ## Architecture
 
 - `EPaperClock.ino` — boot sequence, `setup()`/`loop()`. Deep sleeps 1 min at
-  a time (future display redraw cadence); WiFi/NTP/weather resync only runs
-  every 60th wake (~1h), gated by an `RTC_DATA_ATTR` wake counter.
-  `Config.mount()`/`load()` run every wake regardless (cheap, no network),
-  so `TZ` can be reapplied (`setenv`/`tzset`) from it on every wake — deep
-  sleep clears the libc environment, so skipping this on non-sync wakes
-  would make `localtime()` read UTC until the next resync.
+  a time (future display redraw cadence) via `Device.deepSleep()`; WiFi/NTP/
+  weather resync only runs every 60th wake (~1h), gated by
+  `Device.shouldSync()`. `Config.mount()`/`load()` run every wake regardless
+  (cheap, no network), so `TZ` can be reapplied (`setenv`/`tzset`) from it on
+  every wake — deep sleep clears the libc environment, so skipping this on
+  non-sync wakes would make `localtime()` read UTC until the next resync.
 - `Config.h`/`Config.cpp` — `ConfigClass` (singleton `Config`): read-only
   LittleFS + ArduinoJson load of `/config.json` — WiFi SSID/password,
   timezone, NTP server.
-- `EspUtils.h`/`EspUtils.cpp` — `waitWifi()`/`waitNtp()` wait helpers,
-  `formatDateTime()`/`isTimeSet()`/`urlEncode()`.
+- `Device.h`/`Device.cpp` — `DeviceClass` (singleton `Device`): `waitWifi()`/
+  `beginNtp()`/`waitNtp()` wait/sync helpers, `formatDateTime()`/`isTimeSet()`/
+  `urlEncode()`, and the deep sleep/wake-counter cycle (`shouldSync()`,
+  `deepSleep()`) — the wake counter is `RTC_DATA_ATTR`, so it survives deep
+  sleep. Never takes a `Config` dependency; callers pass in whatever
+  device-agnostic values it needs (e.g. timezone, NTP server).
 - `Weather.h`/`Weather.cpp` — `WeatherClass` (singleton `Weather`): HTTPS
   OpenWeatherMap fetch, TLS-pinned via `data/owm-ca.pem`. Temperature and
   description are cached in RTC memory (`RTC_DATA_ATTR`), so the last known
