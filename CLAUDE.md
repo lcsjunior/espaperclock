@@ -4,11 +4,12 @@ Guidance for Claude Code (claude.ai/code) when working in this repository.
 
 ## Overview
 
-ESP32-C3 firmware for a 1.54" e-paper clock — see `README.md`. The panel
-hasn't arrived, so there's no display code yet.
+ESP32-C3 firmware for a 1.54" e-paper clock — see `README.md`. The panel is
+wired and driven by a hello-world sketch; the clock layout isn't drawn yet.
 
 Implemented: WiFi connect, NTP time sync, OpenWeatherMap fetch, deep sleep
-with periodic resync. Planned: display (see `README.md`'s TODO).
+with periodic resync, e-paper bring-up. Planned: the clock layout and the
+24h full refresh (see `README.md`'s TODO).
 
 Toolchain: Arduino IDE plus `arduino-cli` for reproducible/scripted builds.
 
@@ -22,6 +23,22 @@ Toolchain: Arduino IDE plus `arduino-cli` for reproducible/scripted builds.
   (cheap, no network), so `TZ` can be reapplied (`setenv`/`tzset`) from it on
   every wake — deep sleep clears the libc environment, so skipping this on
   non-sync wakes would make `localtime()` read UTC until the next resync.
+  Also owns the `GxEPD2` display object and `refreshDisplay()`. The panel is
+  redrawn in full on every wake through a *partial* window
+  (`setPartialWindow(0, 0, ...)`), never `setFullWindow()` — the latter is the
+  only path to `_Update_Full()`, which flashes the screen black. The one
+  flash allowed is the cold boot, and it comes for free: `init()`'s `initial`
+  argument is `counter == 0`, and GxEPD2 promotes the first refresh to a full
+  one, then clears the flag.
+  Each non-boot wake draws *twice*, framed by
+  `epd2.writeScreenBufferAgain()`, which loads the controller's current/
+  previous RAM without refreshing. Declaring the previous frame all-black
+  makes every white pixel count as a change, so the old digits are driven
+  away; declaring it all-white then drives the black pixels, re-inking the
+  glyphs. A fast partial waveform is too weak to do both, and after ~60 s the
+  pixels have settled enough that a single pass leaves the previous image
+  visible underneath. Sleep mode is irrelevant to this — it reproduces
+  identically under deep and light sleep, and disappears at a 3 s cadence.
 - `Config.h`/`Config.cpp` — `ConfigClass` (singleton `Config`): read-only
   LittleFS + ArduinoJson load of `/config.json` — WiFi SSID/password,
   timezone, NTP server.
