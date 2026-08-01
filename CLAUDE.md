@@ -36,26 +36,18 @@ User-configurable values belong in `Config`, sourced from `data/config.json`
 
 ## Build, Upload
 
-Board: **LOLIN C3 Pico** (`esp32:esp32:lolin_c3_pico`).
-
-Arduino IDE:
-
-- `Tools > Board` to confirm/select the board.
-- Verify / Upload flash the sketch over USB — the only upload path (no OTA).
-- Serial Monitor: `Ctrl+Shift+M`, 115200 baud.
-- `data/config.json` → device: `Ctrl+Shift+P` → "Upload LittleFS to
-  Pico/ESP8266/ESP32" (`arduino-littlefs-upload` plugin). Flashes the
-  filesystem separately from the sketch binary — close the Serial Monitor
-  first.
-
-`arduino-cli`, pinned by `sketch.yaml`:
+Board: **LOLIN C3 Pico** (`esp32:esp32:lolin_c3_pico`), pinned in
+`sketch.yaml`.
 
 ```bash
 arduino-cli compile --upload --profile lolin_c3_pico -p /dev/ttyACM0 .
 arduino-cli monitor --profile lolin_c3_pico -p /dev/ttyACM0
+./scripts/upload-littlefs.sh   # flashes data/config.json
 ```
 
-No test suite — a clean compile/upload is the definition of done.
+`PORT`/`CHIP`/`BAUD`/`PARTITION_OFFSET`/`PARTITION_SIZE` are overridable env
+vars on `upload-littlefs.sh`. No test suite — a clean compile/upload is the
+definition of done.
 
 - **Always ask for explicit user confirmation before any upload/flash** — it
   writes to physical hardware.

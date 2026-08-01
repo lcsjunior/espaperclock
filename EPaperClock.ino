@@ -10,6 +10,8 @@
 #define WIFI_CONNECT_TIMEOUT_MS 30000UL
 #define NTP_SYNC_TIMEOUT_MS 8000UL
 
+constexpr const char* NTP_FALLBACK_SERVER = "pool.ntp.org";
+
 void setup() {
   Serial.begin(SERIAL_BAUD_RATE);
 
@@ -19,7 +21,7 @@ void setup() {
   WiFi.begin(Config.wifiSsid(), Config.wifiPassword());
   waitWifi(WIFI_CONNECT_TIMEOUT_MS);
 
-  configTzTime(Config.timezone(), Config.ntpServer(), "pool.ntp.org");
+  configTzTime(Config.timezone(), Config.ntpServer(), NTP_FALLBACK_SERVER);
   waitNtp(NTP_SYNC_TIMEOUT_MS);
 }
 

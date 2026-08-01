@@ -42,6 +42,21 @@ on a LOLIN C3 Pico (ESP32-C3), wired to the FSPI bus.
 - [LOLIN C3 Pico pinout](assets/images/wemos_c3_pico_pinout.png)
 - [Waveshare 1.54" e-Paper — ESP32 wiring](https://www.waveshare.com/wiki/1.54inch_e-Paper_Module_Manual#ESP32.2F8266)
 
+## Build, Upload
+
+Board: **LOLIN C3 Pico** (`esp32:esp32:lolin_c3_pico`), pinned in
+`sketch.yaml`.
+
+```bash
+arduino-cli compile --upload --profile lolin_c3_pico -p /dev/ttyACM0 .
+arduino-cli monitor --profile lolin_c3_pico -p /dev/ttyACM0
+./scripts/upload-littlefs.sh   # flashes data/config.json
+```
+
+`PORT`/`CHIP`/`BAUD`/`PARTITION_OFFSET`/`PARTITION_SIZE` are overridable env
+vars on `upload-littlefs.sh`. No test suite — a clean compile/upload is the
+definition of done.
+
 ## TODO
 
 1. [x] Migrate all code to ESP32.
