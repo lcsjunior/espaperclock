@@ -1,6 +1,7 @@
-#include "Device.h"
+#include "CoreUtils.h"
 
 #include <WiFi.h>
+#include <cctype>
 #include <time.h>
 
 #define LOADING_DOT_INTERVAL_MS 250UL
@@ -42,4 +43,24 @@ bool isTimeSet() {
   struct tm timeInfo;
   gmtime_r(&now, &timeInfo);
   return (timeInfo.tm_year + 1900) >= MIN_VALID_YEAR;
+}
+
+void urlEncode(char* dest, size_t destSize, const char* src) {
+  constexpr char hexDigits[] = "0123456789ABCDEF";
+  size_t j = 0;
+
+  for (size_t i = 0; src[i] && j + 1 < destSize; ++i) {
+    const char c = src[i];
+    if (isalnum(static_cast<unsigned char>(c)) || c == '-' || c == '_' ||
+        c == '.' || c == '~' || c == ',') {
+      dest[j++] = c;
+      continue;
+    }
+    if (j + 3 >= destSize)
+      break;
+    dest[j++] = '%';
+    dest[j++] = hexDigits[(c >> 4) & 0x0F];
+    dest[j++] = hexDigits[c & 0x0F];
+  }
+  dest[j] = '\0';
 }

@@ -3,7 +3,8 @@
 #include <WiFi.h>
 
 #include "Config.h"
-#include "Device.h"
+#include "CoreUtils.h"
+#include "Weather.h"
 
 #define SERIAL_BAUD_RATE 115200
 
@@ -23,6 +24,9 @@ void setup() {
 
   configTzTime(Config.timezone(), Config.ntpServer(), NTP_FALLBACK_SERVER);
   waitNtp(NTP_SYNC_TIMEOUT_MS);
+
+  Weather.begin(Config.owmApiKey(), Config.owmLocation());
+  Weather.request();
 }
 
 void loop() {

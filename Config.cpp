@@ -39,6 +39,8 @@ void ConfigClass::load() {
   strlcpy(timezone_, doc["timezone"] | DEFAULT_TIMEZONE, sizeof(timezone_));
   strlcpy(ntpServer_, doc["ntp_server"] | DEFAULT_NTP_SERVER,
           sizeof(ntpServer_));
+  strlcpy(owmApiKey_, doc["owm_api_key"] | "", sizeof(owmApiKey_));
+  strlcpy(owmLocation_, doc["owm_location"] | "", sizeof(owmLocation_));
 }
 
 const char* ConfigClass::wifiSsid() const {
@@ -55,4 +57,12 @@ const char* ConfigClass::timezone() const {
 
 const char* ConfigClass::ntpServer() const {
   return ntpServer_;
+}
+
+const char* ConfigClass::owmApiKey() const {
+  return owmApiKey_;
+}
+
+const char* ConfigClass::owmLocation() const {
+  return owmLocation_;
 }
