@@ -19,6 +19,7 @@ static char* caCert = nullptr;
 RTC_DATA_ATTR static float cachedTemperature = 0.0f;
 RTC_DATA_ATTR static char cachedDescription[48] = {0};
 RTC_DATA_ATTR static char cachedCityName[48] = {0};
+RTC_DATA_ATTR static char cachedCountry[3] = {0};
 
 void WeatherClass::begin(const char* apiKey, const char* location) {
   apiKey_ = apiKey;
@@ -48,6 +49,10 @@ const char* WeatherClass::description() const {
 
 const char* WeatherClass::cityName() const {
   return cachedCityName;
+}
+
+const char* WeatherClass::country() const {
+  return cachedCountry;
 }
 
 void WeatherClass::loadCaCert() {
@@ -126,8 +131,9 @@ void WeatherClass::processResponse(int statusCode) {
   setTemperature(doc["main"]["temp"].as<float>());
   setDescription(doc["weather"][0]["description"] | "");
   setCityName(doc["name"] | "");
+  setCountry(doc["sys"]["country"] | "");
 
-  log_i("OWM %s %.2fC %s", cachedCityName, cachedTemperature,
+  log_i("OWM %s,%s %.2fC %s", cachedCityName, cachedCountry, cachedTemperature,
         cachedDescription);
 }
 
@@ -141,4 +147,8 @@ void WeatherClass::setDescription(const char* value) {
 
 void WeatherClass::setCityName(const char* value) {
   strlcpy(cachedCityName, value, sizeof(cachedCityName));
+}
+
+void WeatherClass::setCountry(const char* value) {
+  strlcpy(cachedCountry, value, sizeof(cachedCountry));
 }

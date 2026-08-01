@@ -14,6 +14,7 @@ class WeatherClass {
   float temperature() const;
   const char* description() const;
   const char* cityName() const;
+  const char* country() const;
 
  private:
   WiFiClientSecure wifiClient_;
@@ -30,6 +31,7 @@ class WeatherClass {
   void setTemperature(float value);
   void setDescription(const char* value);
   void setCityName(const char* value);
+  void setCountry(const char* value);
 };
 
 extern WeatherClass Weather;

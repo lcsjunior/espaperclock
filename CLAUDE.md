@@ -36,9 +36,10 @@ Toolchain: Arduino IDE plus `arduino-cli` for reproducible/scripted builds.
   timezone, NTP server). Also declares `urlEncode()`, a free function (no
   device state) rather than a `Sys` method.
 - `Weather.h`/`Weather.cpp` — `WeatherClass` (singleton `Weather`): HTTPS
-  OpenWeatherMap fetch, TLS-pinned via `data/owm-ca.pem`. Temperature and
-  description are cached in RTC memory (`RTC_DATA_ATTR`), so the last known
-  reading survives deep sleep and a failed fetch just leaves it in place.
+  OpenWeatherMap fetch, TLS-pinned via `data/owm-ca.pem`. Temperature,
+  description, city name and country (`sys.country`) are cached in RTC memory
+  (`RTC_DATA_ATTR`), so the last known reading survives deep sleep and a failed
+  fetch just leaves it in place.
 - `data/config.json` — the actual secrets, git-ignored, flashed to the
   device separately from the sketch (see Build, Upload). Never written by
   the firmware. `data/config.json.example` is the tracked template.
