@@ -3,8 +3,9 @@
 ESP32 firmware (Arduino IDE / `arduino-cli`) for a 1.54" e-paper clock. Shows
 a 24h digital clock (NTP, configured timezone).
 
-> **Status:** the panel hasn't arrived — nothing is drawn yet, and `GxEPD2` /
-> `Adafruit GFX` aren't installed.
+> **Status:** the panel is wired and driven by a hello-world sketch — a
+> full-screen partial refresh on every 1 min wake, over deep sleep, with no
+> flashing. The clock layout below isn't drawn yet.
 
 ## Display layout
 
@@ -62,7 +63,7 @@ definition of done.
 1. [x] Migrate all code to ESP32.
 2. [x] Move to the LOLIN C3 Pico (ESP32-C3): board, e-paper pinout, FSPI.
 3. [x] Deep sleep with NTP/Wheater sync every 1h.
-4. [ ] Display: partial refresh only; full refresh after NTP sync.
+4. [ ] Display: partial refresh only; full refresh every 24h.
 5. [ ] Run on the 600 mAh JST LiPo.
 6. [ ] Retry the OpenWeather request on failure.
 7. [x] Cache the weather result (RTC memory) across deep sleep.
