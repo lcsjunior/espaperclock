@@ -13,14 +13,13 @@ class WeatherClass {
 
   float temperature() const;
   const char* description() const;
+  const char* cityName() const;
 
  private:
   WiFiClientSecure wifiClient_;
   HTTPClient http_;
   const char* apiKey_ = nullptr;
   const char* location_ = nullptr;
-  float temperature_ = 0.0f;
-  char description_[48] = {0};
 
   void loadCaCert();
   bool hasConfig() const;
@@ -30,6 +29,7 @@ class WeatherClass {
   void processResponse(int statusCode);
   void setTemperature(float value);
   void setDescription(const char* value);
+  void setCityName(const char* value);
 };
 
 extern WeatherClass Weather;

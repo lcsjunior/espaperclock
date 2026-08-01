@@ -5,6 +5,7 @@
 
 void waitWifi(uint32_t timeoutMs);
 void waitNtp(uint32_t timeoutMs);
+void setTimezone(const char* timezone);
 const char* formatDateTime();
 bool isTimeSet();
 void urlEncode(char* dest, size_t destSize, const char* src);

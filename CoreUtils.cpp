@@ -31,6 +31,11 @@ void waitNtp(uint32_t timeoutMs) {
                 formatDateTime());
 }
 
+void setTimezone(const char* timezone) {
+  setenv("TZ", timezone, 1);
+  tzset();
+}
+
 const char* formatDateTime() {
   static char dateTime[20];
   time_t now = time(nullptr);

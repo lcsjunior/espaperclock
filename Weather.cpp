@@ -16,6 +16,9 @@ constexpr const char* OWM_CA_CERT_PATH = "/owm-ca.pem";
 WeatherClass Weather;
 
 static char* caCert = nullptr;
+RTC_DATA_ATTR static float cachedTemperature = 0.0f;
+RTC_DATA_ATTR static char cachedDescription[48] = {0};
+RTC_DATA_ATTR static char cachedCityName[48] = {0};
 
 void WeatherClass::begin(const char* apiKey, const char* location) {
   apiKey_ = apiKey;
@@ -44,11 +47,15 @@ void WeatherClass::loadCaCert() {
 }
 
 float WeatherClass::temperature() const {
-  return temperature_;
+  return cachedTemperature;
 }
 
 const char* WeatherClass::description() const {
-  return description_;
+  return cachedDescription;
+}
+
+const char* WeatherClass::cityName() const {
+  return cachedCityName;
 }
 
 bool WeatherClass::hasConfig() const {
@@ -118,14 +125,20 @@ void WeatherClass::processResponse(int statusCode) {
 
   setTemperature(doc["main"]["temp"].as<float>());
   setDescription(doc["weather"][0]["description"] | "");
+  setCityName(doc["name"] | "");
 
-  log_i("OWM %.2fC %s", temperature_, description_);
+  log_i("OWM %s %.2fC %s", cachedCityName, cachedTemperature,
+        cachedDescription);
 }
 
 void WeatherClass::setTemperature(float value) {
-  temperature_ = value;
+  cachedTemperature = value;
 }
 
 void WeatherClass::setDescription(const char* value) {
-  strlcpy(description_, value, sizeof(description_));
+  strlcpy(cachedDescription, value, sizeof(cachedDescription));
+}
+
+void WeatherClass::setCityName(const char* value) {
+  strlcpy(cachedCityName, value, sizeof(cachedCityName));
 }
